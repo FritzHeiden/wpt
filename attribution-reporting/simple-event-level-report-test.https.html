@@ -1,0 +1,20 @@
+<!doctype html>
+<meta charset=utf-8>
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+<script src="/attribution-reporting/helpers.js"></script>
+<script>
+  promise_test(async t => {
+    await clearStash("/.well-known/attribution-reporting/report-event-attribution")
+    register("/attribution-reporting/resources/event-level-reports/attribution-source.py?source_event_id=9153495207648170476");
+    // Adds delay to prevent race condition between source registration and trigger registration.
+    await delay(100);
+    register("/attribution-reporting/resources/event-level-reports/attribution-trigger.py");
+    const payload = await poll("/.well-known/attribution-reporting/report-event-attribution", 100)
+    assert_equals(payload.reports.length, 1);
+    const report = payload.reports[0];
+    assert_equals(report.trigger_data, "0");
+    assert_equals(report.source_event_id, "9153495207648170476");
+    assert_equals(report.source_type, "event");
+  }, "Ensure attribution report is received.");
+</script>
